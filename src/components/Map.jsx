@@ -2,23 +2,34 @@ import { useState } from "react"
 import { View, Text, ScrollView, StyleSheet, Pressable } from "react-native"
 
 const Map = (props) => {
+  // extract events
+  const onTurnCompleted = props.onTurnCompleted
+  const onVictory = props.onVictory
+  
+  // extract map dimensions
   const rows = props.rows
   const cols = props.cols
 
+  // extract player shippings
   const player1Shippings = props.player1Shippings
   const player2Shippings = props.player2Shippings
 
-  const matrix = []
-  for (let i = 0; i < rows; i++) {
-    const emptyRow = []
-    for (let j = 0; j < cols; j++) {
-      emptyRow.push({ row: i, col: j })
+  // generate map state
+  const generateEmptyMap = () => {
+    const matrix = []
+    for (let i = 0; i < rows; i++) {
+      const emptyRow = []
+      for (let j = 0; j < cols; j++) {
+        emptyRow.push({ row: i, col: j })
+      }
+      matrix.push(emptyRow)
     }
-    matrix.push(emptyRow)
+    return matrix
   }
 
-  const [map, setMap] = useState(matrix)
+  const [map, setMap] = useState(generateEmptyMap())
 
+  // events
   const onCellClick = (cell) => {
     const i = cell.row
     const j = cell.col
@@ -28,9 +39,41 @@ const Map = (props) => {
 
     mapCopy[i][j] = cell
 
-    console.log(cell)
+    onTurnCompleted(cell)
+
+    const isPlayer1Victory = isAllShippingsRevealed(mapCopy, player1Shippings)
+
+    if (isPlayer1Victory) {
+      onVictory('Jogador 1')
+    }
+
+    const isPlayer2Victory = isAllShippingsRevealed(mapCopy, player2Shippings)
+
+    if (isPlayer2Victory) {
+      onVictory('Jogador 2')
+    }
 
     setMap(mapCopy)
+  }
+
+  const isAllShippingsRevealed = (currentMatrix, shippings) => {
+    let totalRevealed = 0
+    let totalPoints = 0
+
+    shippings.forEach((shipping) => {
+      shipping.position.forEach((position) => {
+        const row = position.row
+        const col = position.col
+
+        if (currentMatrix[row][col].revealed) {
+          totalRevealed++
+        }
+
+        totalPoints++
+      })
+    })
+
+    return totalRevealed >= totalPoints
   }
 
   const isShipping = (shippings, cell) => {
