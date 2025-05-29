@@ -5,6 +5,9 @@ const Map = (props) => {
   const rows = props.rows
   const cols = props.cols
 
+  const player1Shippings = props.player1Shippings
+  const player2Shippings = props.player2Shippings
+
   const matrix = []
   for (let i = 0; i < rows; i++) {
     const emptyRow = []
@@ -30,6 +33,29 @@ const Map = (props) => {
     setMap(mapCopy)
   }
 
+  const isShipping = (shippings, cell) => {
+    return shippings.find((ship) => {
+      return ship.position.find((position) => {
+        return position.row == cell.row && position.col == cell.col
+      })
+    })
+  }
+
+  const showContent = (cell) => {
+    const isPlayer1Shipping = isShipping(player1Shippings, cell)
+
+    if (isPlayer1Shipping && cell.revealed) {
+      return 'P1'
+    }
+
+    const isPlayer2Shipping = isShipping(player2Shippings, cell)
+
+    if (isPlayer2Shipping && cell.revealed) {
+      return 'P2'
+    }
+
+    return ''
+  }
 
   return (
     <ScrollView>
@@ -58,7 +84,7 @@ const Map = (props) => {
                 return (
                   <View key={colIndex} style={(cell.revealed) ? styles.cellContainerRevealed : styles.cellContainer}>
                     <Pressable onPress={() => onCellClick(cell)} style={styles.pressable}>
-                      <Text>{cell.row} - {cell.col}</Text>
+                      <Text>{showContent(cell)}</Text>
                     </Pressable>
                   </View>
                 )
